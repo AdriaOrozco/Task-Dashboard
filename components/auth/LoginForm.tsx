@@ -2,24 +2,19 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, LoginValues } from "@/schemas/loginSchema";
+import { useLoginForm } from "@/hooks/useLoginForm";
+import { Spinner } from "../ui/spinner";
 
 export function LoginForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitted },
-  } = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-  });
-
-  const onSubmit = (data: LoginValues) => {
-    console.log("Login", data);
-  };
+    errors,
+    isSubmitted,
+    onSubmit,
+    loading,
+    errorMessage,
+  } = useLoginForm();
 
   return (
     <form
@@ -65,13 +60,19 @@ export function LoginForm() {
           {errors.password && isSubmitted ? errors.password.message : "\u00A0"}
         </p>
       </div>
-
-      <Button
-        type="submit"
-        className="w-full h-14 text-lg font-semibold hover:bg-indigo-600 transition cursor-pointer"
-      >
-        Sign in
-      </Button>
+      {loading ? (
+        <div className="flex justify-center py-3">
+          <Spinner />
+        </div>
+      ) : (
+        <Button
+          type="submit"
+          className="w-full h-14 text-lg font-semibold hover:bg-indigo-600 transition cursor-pointer"
+        >
+          Sign in
+        </Button>
+      )}
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
     </form>
   );
 }

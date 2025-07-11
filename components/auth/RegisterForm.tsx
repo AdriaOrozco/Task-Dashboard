@@ -1,39 +1,23 @@
 "use client";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RoleSelector } from "./RoleSelector";
-import { z } from "zod";
-import { registerSchema } from "@/schemas/registerSchema";
-
-type RegisterValues = z.infer<typeof registerSchema>;
+import { useRegisterForm } from "@/hooks/useRegisterForm";
+import { Spinner } from "../ui/spinner";
 
 export function RegisterForm() {
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
-    formState: { errors, isSubmitted },
-  } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-    defaultValues: { role: "Worker" },
-  });
-
-  const onSubmit = (data: RegisterValues) => {
-    console.log("Register", data);
-  };
-
-  // Sync RoleSelector status with react-hook-form
-  const role = watch("role");
-  useEffect(() => {
-    register("role");
-  }, [register]);
+    errors,
+    isSubmitted,
+    onSubmit,
+    role,
+    loading,
+    errorMessage,
+  } = useRegisterForm();
 
   return (
     <form
@@ -82,13 +66,19 @@ export function RegisterForm() {
       <p className="text-red-500 text-sm min-h-1">
         {errors.email && isSubmitted ? errors.email.message : "\u00A0"}
       </p>
-
-      <Button
-        type="submit"
-        className="w-full h-14 text-lg font-semibold hover:bg-indigo-600 transition cursor-pointer"
-      >
-        Sign up
-      </Button>
+      {loading ? (
+        <div className="flex justify-center py-3">
+          <Spinner />
+        </div>
+      ) : (
+        <Button
+          type="submit"
+          className="w-full h-14 text-lg font-semibold hover:bg-indigo-600 transition cursor-pointer"
+        >
+          Sign up
+        </Button>
+      )}
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
     </form>
   );
 }
