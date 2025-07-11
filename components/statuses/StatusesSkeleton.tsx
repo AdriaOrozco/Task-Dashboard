@@ -8,11 +8,11 @@ export function StatusesSkeleton() {
       {[...Array(4)].map((_, i) => (
         <Skeleton
           key={i}
-          className="flex flex-col bg-gray-100 rounded-xl 
+          className="flex flex-col bg-gray-700 rounded-xl 
                      min-w-[280px] min-h-[320px] p-5 "
         >
-          <Skeleton className="h-8 w-32 mb-4 rounded bg-gray-300" />
-          <Skeleton className="flex-1 rounded-md bg-gray-300" />
+          <Skeleton className="h-8 w-32 mb-4 rounded bg-gray-600" />
+          <Skeleton className="flex-1 rounded-md bg-gray-800" />
         </Skeleton>
       ))}
     </div>

@@ -1,29 +1,35 @@
 "use client";
 
 import { Status } from "@/types/components";
+import { StatusCard } from "./StatusCard";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useStatusOrder } from "@/hooks/useStatusOrder";
 
 export function StatusesList({ statuses }: { statuses: Status[] }) {
+  const { statusesState, sensors, handleDragEnd } = useStatusOrder({
+    statuses,
+  });
+
   return (
     <main className="grid grid-cols-[repeat(auto-fit,_minmax(280px,_1fr))] gap-6 p-4 min-h-[300px]">
-      {statuses.map(({ id, name }) => (
-        <section
-          key={id}
-          className="flex flex-col bg-gray-700 rounded-xl shadow-sm
-                     min-h-[320px] p-5
-                     border border-gray-700 hover:border-violet-600 transition cursor-pointer"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={statuses}
+          strategy={verticalListSortingStrategy}
         >
-          <h2 className="text-lg font-semibold text-gray-200 mb-4">{name}</h2>
-          <div
-            className="flex-1 border border-dashed border-gray-400 rounded-md
-                       bg-gray-800
-                       flex items-center justify-center
-                       text-gray-400
-                      "
-          >
-            <p className="italic">No tasks yet</p>
-          </div>
-        </section>
-      ))}
+          {statusesState.map((status: Status) => (
+            <StatusCard key={status.id} id={status.id} name={status.name} />
+          ))}
+        </SortableContext>
+      </DndContext>
     </main>
   );
 }

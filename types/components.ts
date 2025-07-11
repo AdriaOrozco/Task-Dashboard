@@ -8,3 +8,8 @@ export type Status = {
   name: string;
   order: number;
 };
+
+export type StatusCardType = {
+  id: string;
+  name: string;
+};
