@@ -4,14 +4,31 @@ export function useStatusName({ name, id }: { name: string; id: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(name);
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setIsEditing(false);
+      setNewName(name);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (newName.trim() && newName !== name) {
+        await handleChangeName();
+      }
+    }
+  };
+
   const handleChangeName = async () => {
+    setIsSaving(true);
+    setError(null);
     try {
       await updateStatusName(id, newName);
       setIsEditing(false);
-      //TODO: Add loading state
-    } catch (error) {
-      //TODO: handle error
-      console.error(error);
+    } catch (err) {
+      setError("Error updating status name: " + (err as Error).message);
+    } finally {
+      setIsSaving(false);
     }
   };
   async function updateStatusName(id: string, name: string) {
@@ -31,5 +48,8 @@ export function useStatusName({ name, id }: { name: string; id: string }) {
     setNewName,
     newName,
     setIsEditing,
+    isSaving,
+    handleKeyDown,
+    error,
   };
 }

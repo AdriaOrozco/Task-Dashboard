@@ -6,10 +6,19 @@ import { CSS } from "@dnd-kit/utilities";
 import { useStatusName } from "@/hooks/useStatusName";
 import { useStatusDelete } from "@/hooks/useStatusDelete";
 import { StatusCardType } from "@/types/components";
+import { Spinner } from "../ui/spinner";
 
 export function StatusCard({ id, name }: StatusCardType) {
-  const { isEditing, newName, setIsEditing, handleChangeName, setNewName } =
-    useStatusName({ name, id });
+  const {
+    isEditing,
+    newName,
+    setIsEditing,
+    handleChangeName,
+    setNewName,
+    isSaving,
+    error,
+    handleKeyDown,
+  } = useStatusName({ name, id });
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id, disabled: isEditing });
 
@@ -56,26 +65,31 @@ export function StatusCard({ id, name }: StatusCardType) {
           </div>
         </div>
       ) : (
-        <div className="mb-4 flex items-center gap-2 z-10 relative cursor-default">
-          <input
-            className="bg-gray-600 text-gray-100 px-2 py-1 rounded outline-none focus:ring ring-violet-500 w-full"
-            value={newName}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setIsEditing(false);
-              }
-            }}
-            onChange={(e) => {
-              setNewName(e.target.value);
-            }}
-            autoFocus
-          />
-          <button
-            onClick={handleChangeName}
-            className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-3 py-1 rounded transition h-8 cursor-pointer"
-          >
-            Guardar
-          </button>
+        <div className="mb-4 flex flex-col gap-1 z-10 relative cursor-default">
+          <div className="flex items-center gap-2">
+            <input
+              className="bg-gray-600 text-gray-100 px-2 py-1 rounded outline-none focus:ring ring-violet-500 w-full"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              disabled={isSaving}
+            />
+            {isSaving ? (
+              <div className="flex justify-center py-1 min-w-[55px]">
+                <Spinner width={22} height={22} />
+              </div>
+            ) : (
+              <button
+                onClick={handleChangeName}
+                disabled={isSaving || newName.trim() === ""}
+                className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-3 py-1 rounded transition h-8 disabled:opacity-50 cursor-pointer"
+              >
+                Save
+              </button>
+            )}
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
       )}
       <div className="flex-1 border border-dashed border-gray-400 rounded-md bg-gray-800 flex items-center justify-center text-gray-400 select-none">
