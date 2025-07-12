@@ -7,12 +7,18 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { useCallback, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { toast } from "sonner";
 
 const NOT_FOUND = -1;
 
-export function useStatusOrder({ statuses }: { statuses: Status[] }) {
-  const [statusesState, setStatuseState] = useState(statuses);
+export function useStatusOrder({
+  statusesState,
+  setStatusesState,
+}: {
+  statusesState: Status[];
+  setStatusesState: Dispatch<SetStateAction<Status[]>>;
+}) {
   const sensors = useSensors(useSensor(PointerSensor));
 
   async function updateStatusOrder(orderedIds: string[]) {
@@ -23,6 +29,7 @@ export function useStatusOrder({ statuses }: { statuses: Status[] }) {
     });
 
     if (!res.ok) throw new Error("Error updating status order");
+    toast.success("Reordered successfully");
     return res.json();
   }
 
@@ -30,7 +37,7 @@ export function useStatusOrder({ statuses }: { statuses: Status[] }) {
 
   const handleDragStart = (event: DragStartEvent) => {
     const id = event.active.id;
-    const dragged = statuses.find((s) => s.id === id);
+    const dragged = statusesState.find((s) => s.id === id);
     if (dragged) {
       setActiveStatus(dragged);
     }
@@ -48,15 +55,15 @@ export function useStatusOrder({ statuses }: { statuses: Status[] }) {
           const newOrder = arrayMove(statusesState, oldIndex, newIndex);
           const orderedIds = newOrder.map((s) => s.id);
           updateStatusOrder(orderedIds).catch(console.error);
-          setStatuseState(newOrder);
+          setStatusesState(newOrder);
         }
       }
       setActiveStatus(null);
     },
-    [statusesState]
+    [setStatusesState, statusesState]
   );
+
   return {
-    statusesState,
     sensors,
     handleDragEnd,
     activeStatus,

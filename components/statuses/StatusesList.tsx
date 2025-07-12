@@ -6,7 +6,8 @@ import {
   horizontalListSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
-import { useStatusOrder } from "@/hooks/useStatusOrder";
+import { useStatus } from "@/hooks/statuses/useStatus";
+import AddStatusCard from "./AddStatusCard";
 
 export function StatusesList({ statuses }: { statuses: Status[] }) {
   const {
@@ -15,12 +16,13 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
     handleDragEnd,
     activeStatus,
     handleDragStart,
-  } = useStatusOrder({
+    createOperations,
+  } = useStatus({
     statuses,
   });
 
   return (
-    <main className="grid grid-cols-[repeat(auto-fit,_minmax(280px,_1fr))] gap-6 p-4 min-h-[300px]">
+    <main className="flex gap-4 px-4 py-2 overflow-x-auto h-calc-header">
       <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}
@@ -32,8 +34,11 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
           strategy={horizontalListSortingStrategy}
         >
           {statusesState.map((status: Status) => (
-            <StatusCard key={status.id} id={status.id} name={status.name} />
+            <div key={status.id} className="max-h-full">
+              <StatusCard key={status.id} id={status.id} name={status.name} />
+            </div>
           ))}
+          <AddStatusCard createOperations={createOperations} />
         </SortableContext>
         <DragOverlay>
           {activeStatus ? (

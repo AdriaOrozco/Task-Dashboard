@@ -3,8 +3,8 @@
 import { Pencil, Trash } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useStatusName } from "@/hooks/useStatusName";
-import { useStatusDelete } from "@/hooks/useStatusDelete";
+import { useStatusName } from "@/hooks/statuses/useStatusName";
+import { useStatusDelete } from "@/hooks/statuses/useStatusDelete";
 import { StatusCardType } from "@/types/components";
 import { Spinner } from "../ui/spinner";
 import { cn, getDragStyle } from "@/lib/utils";
@@ -38,7 +38,7 @@ function StatusCard({ id, name, isDragging }: StatusCardType) {
       {...attributes}
       {...listeners}
       className={cn(
-        "flex flex-col bg-gray-700 rounded-xl shadow-sm min-h-[320px] p-5 border border-gray-700 hover:border-violet-600 transition relative",
+        "flex flex-col bg-gray-700 rounded-xl shadow-sm min-h-[340px] min-w-[320px] p-5 border border-gray-700 hover:border-violet-600 transition relative",
         getDragStyle(isDragging ?? false)
       )}
     >

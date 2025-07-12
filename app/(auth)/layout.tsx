@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -10,6 +11,7 @@ export default function RootLayout({
     <SessionProviderWrapper>
       <Header />
       {children}
+      <Toaster position="top-center" richColors />
     </SessionProviderWrapper>
   );
 }

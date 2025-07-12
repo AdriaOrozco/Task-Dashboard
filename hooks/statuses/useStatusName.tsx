@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function useStatusName({ name, id }: { name: string; id: string }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -27,7 +28,9 @@ export function useStatusName({ name, id }: { name: string; id: string }) {
       setIsEditing(false);
     } catch (err) {
       setError("Error updating status name: " + (err as Error).message);
+      toast.error("Error updating status name");
     } finally {
+      toast.success("Status name updated successfully");
       setIsSaving(false);
     }
   };
