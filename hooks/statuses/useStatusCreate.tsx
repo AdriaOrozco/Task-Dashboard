@@ -19,6 +19,14 @@ export function useStatusCreate({
     setValue("");
     setIsEditing(false);
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleCreateNewStatus();
+    if (e.key === "Escape") {
+      setValue("");
+      setIsEditing(false);
+    }
+  };
   const handleCreate = async (name: string) => {
     const res = await fetch("/api/statuses", {
       method: "POST",
@@ -49,6 +57,7 @@ export function useStatusCreate({
       value,
       setValue,
       handleCreateNewStatus,
+      handleKeyDown,
     },
   };
 }

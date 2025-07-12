@@ -12,11 +12,7 @@ export default function AddStatusCard({
         value={createOperations.value}
         onChange={(e) => createOperations.setValue(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") createOperations.handleCreateNewStatus();
-          if (e.key === "Escape") {
-            createOperations.setValue("");
-            createOperations.setIsEditing(false);
-          }
+          createOperations.handleKeyDown(e);
         }}
         onBlur={() => createOperations.handleCreateNewStatus()}
         className="w-full p-2 rounded bg-gray-600 text-white"

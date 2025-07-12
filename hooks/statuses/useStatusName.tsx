@@ -1,7 +1,12 @@
+import { StatusCardType } from "@/types/components";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function useStatusName({ name, id }: { name: string; id: string }) {
+export function useStatusName({
+  name,
+  id,
+  updateListOperation,
+}: StatusCardType) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(name);
 
@@ -25,6 +30,7 @@ export function useStatusName({ name, id }: { name: string; id: string }) {
     setError(null);
     try {
       await updateStatusName(id, newName);
+      updateListOperation("UPDATE_NAME", id, newName);
       setIsEditing(false);
     } catch (err) {
       setError("Error updating status name: " + (err as Error).message);

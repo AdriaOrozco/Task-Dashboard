@@ -17,6 +17,7 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
     activeStatus,
     handleDragStart,
     createOperations,
+    updateListOperation,
   } = useStatus({
     statuses,
   });
@@ -35,7 +36,12 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
         >
           {statusesState.map((status: Status) => (
             <div key={status.id} className="max-h-full">
-              <StatusCard key={status.id} id={status.id} name={status.name} />
+              <StatusCard
+                updateListOperation={updateListOperation}
+                key={status.id}
+                id={status.id}
+                name={status.name}
+              />
             </div>
           ))}
           <AddStatusCard createOperations={createOperations} />
@@ -43,6 +49,7 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
         <DragOverlay>
           {activeStatus ? (
             <StatusCard
+              updateListOperation={updateListOperation}
               id={activeStatus.id}
               name={activeStatus.name}
               isDragging
