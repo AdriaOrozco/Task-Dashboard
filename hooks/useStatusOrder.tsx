@@ -4,9 +4,10 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 const NOT_FOUND = -1;
 
@@ -25,23 +26,40 @@ export function useStatusOrder({ statuses }: { statuses: Status[] }) {
     return res.json();
   }
 
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = statusesState.findIndex((i) => i.id === active.id);
-      const newIndex = statusesState.findIndex((i) => i.id === over.id);
+  const [activeStatus, setActiveStatus] = useState<Status | null>(null);
 
-      if (oldIndex !== NOT_FOUND && newIndex !== NOT_FOUND) {
-        const newOrder = arrayMove(statusesState, oldIndex, newIndex);
-        const orderedIds = newOrder.map((s) => s.id);
-        updateStatusOrder(orderedIds).catch(console.error);
-        setStatuseState(newOrder);
-      }
+  const handleDragStart = (event: DragStartEvent) => {
+    const id = event.active.id;
+    const dragged = statuses.find((s) => s.id === id);
+    if (dragged) {
+      setActiveStatus(dragged);
     }
-  }
+  };
+
+  //Avoid unnecessary re-renders and API calls by using useCallback
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (over && active.id !== over.id) {
+        const oldIndex = statusesState.findIndex((i) => i.id === active.id);
+        const newIndex = statusesState.findIndex((i) => i.id === over.id);
+
+        if (oldIndex !== NOT_FOUND && newIndex !== NOT_FOUND) {
+          const newOrder = arrayMove(statusesState, oldIndex, newIndex);
+          const orderedIds = newOrder.map((s) => s.id);
+          updateStatusOrder(orderedIds).catch(console.error);
+          setStatuseState(newOrder);
+        }
+      }
+      setActiveStatus(null);
+    },
+    [statusesState]
+  );
   return {
     statusesState,
     sensors,
     handleDragEnd,
+    activeStatus,
+    handleDragStart,
   };
 }

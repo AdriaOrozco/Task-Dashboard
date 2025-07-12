@@ -7,8 +7,10 @@ import { useStatusName } from "@/hooks/useStatusName";
 import { useStatusDelete } from "@/hooks/useStatusDelete";
 import { StatusCardType } from "@/types/components";
 import { Spinner } from "../ui/spinner";
+import { cn, getDragStyle } from "@/lib/utils";
+import { memo } from "react";
 
-export function StatusCard({ id, name }: StatusCardType) {
+function StatusCard({ id, name, isDragging }: StatusCardType) {
   const {
     isEditing,
     newName,
@@ -35,7 +37,10 @@ export function StatusCard({ id, name }: StatusCardType) {
       style={style}
       {...attributes}
       {...listeners}
-      className="flex flex-col bg-gray-700 rounded-xl shadow-sm min-h-[320px] p-5 border border-gray-700 hover:border-violet-600 transition relative"
+      className={cn(
+        "flex flex-col bg-gray-700 rounded-xl shadow-sm min-h-[320px] p-5 border border-gray-700 hover:border-violet-600 transition relative",
+        getDragStyle(isDragging ?? false)
+      )}
     >
       {!isEditing ? (
         <div className="flex justify-between items-center mb-4 z-10 relative cursor-grab">
@@ -98,3 +103,5 @@ export function StatusCard({ id, name }: StatusCardType) {
     </section>
   );
 }
+
+export const StatusCardMemo = memo(StatusCard);

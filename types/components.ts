@@ -12,4 +12,5 @@ export type Status = {
 export type StatusCardType = {
   id: string;
   name: string;
+  isDragging?: boolean;
 };

@@ -40,3 +40,9 @@ export async function loginUser(
     setLoading(false);
   }
 }
+
+export function getDragStyle(isDragging: boolean): string {
+  return isDragging
+    ? "opacity-90 shadow-2xl scale-[1.03] z-50 ring-4 ring-violet-500"
+    : "";
+}
