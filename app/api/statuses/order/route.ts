@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
+import { requirePermission } from "@/lib/requirePermission";
 
 export async function PUT(req: NextRequest) {
   try {
     const { session, response } = await getAuthenticatedSession();
     if (!session) return response;
+    if (session.user.role) {
+      const permissionCheck = requirePermission(
+        session.user.role,
+        "drag_and_drop"
+      );
+      if (permissionCheck) return permissionCheck;
+    }
     const { orderedIds } = await req.json();
 
     if (!Array.isArray(orderedIds)) {

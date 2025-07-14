@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
+import { requirePermission } from "@/lib/requirePermission";
 
 export async function GET() {
   try {
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
   try {
     const { session, response } = await getAuthenticatedSession();
     if (!session) return response;
+    if (session.user.role) {
+      const permissionCheck = requirePermission(
+        session.user.role,
+        "create_status"
+      );
+      if (permissionCheck) return permissionCheck;
+    }
     const { name, order } = await req.json();
 
     if (!name || name.trim() === "") {
