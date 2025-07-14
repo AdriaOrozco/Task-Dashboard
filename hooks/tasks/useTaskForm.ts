@@ -1,16 +1,18 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { Comment, TaskHookProps } from "@/types/components";
+import { Comment, TaskHookProps, TaskPayload } from "@/types/components";
 import { taskFormSchema, TaskFormValues } from "@/schemas/taskSchema";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useTaskForm({
   mode,
-  initialData,
   onOpenChange,
   statusId,
   order,
+  task,
   createTask,
 }: TaskHookProps) {
   const [newComment, setNewComment] = useState("");
@@ -19,6 +21,7 @@ export function useTaskForm({
   const currentUserEmail = session?.user?.email || "Unknown";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   const {
     register,
@@ -30,23 +33,43 @@ export function useTaskForm({
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      dueDate: undefined,
+      name: mode === "edit" && task ? task.name : "",
+      description: mode === "edit" && task ? task.description ?? "" : "",
+      dueDate:
+        mode === "edit" && task && task.dueDate
+          ? new Date(task.dueDate)
+          : undefined,
     },
   });
   const dueDate = watch("dueDate");
 
+  const getTaskComments = async () => {
+    setLoadingComments(true);
+    try {
+      const res = await fetch(`/api/comments/${task?.id}`);
+      if (!res.ok) {
+        throw new Error("Error fetching comments");
+      }
+      const data: Comment[] = await res.json();
+      console.log(comments);
+      setComments(data);
+    } catch (error) {
+      console.error(error);
+    }
+    setLoadingComments(false);
+  };
+
   useEffect(() => {
-    if (mode === "edit" && initialData) {
+    if (mode === "edit" && task) {
       reset({
-        name: initialData.name || "",
-        description: initialData.description || "",
-        dueDate: initialData.dueDate
-          ? new Date(initialData.dueDate)
-          : undefined,
+        name: task ? task.name : "",
+        description: mode === "edit" && task ? task.description ?? "" : "",
+        dueDate:
+          mode === "edit" && task && task.dueDate
+            ? new Date(task.dueDate)
+            : undefined,
       });
-      //TODO -> Fetch comments
+      getTaskComments();
     }
 
     return () => {
@@ -58,13 +81,13 @@ export function useTaskForm({
       });
       setComments([]);
     };
-  }, [mode, initialData, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, task, reset]);
 
   const onSubmit: SubmitHandler<TaskFormValues> = async (data) => {
-    //TODO -> Edit
     setLoading(true);
     setError(null);
-    if (createTask) {
+    if (mode == "create" && createTask) {
       await createTask(
         data,
         mode,
@@ -75,6 +98,46 @@ export function useTaskForm({
         setError,
         setLoading
       );
+    }
+    if (mode == "edit") {
+      updateTask(data);
+    }
+  };
+
+  const router = useRouter();
+
+  const updateTask = async (data: TaskFormValues) => {
+    try {
+      const payload: TaskPayload = {
+        ...data,
+        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+        comments,
+        statusId,
+        order,
+      };
+
+      const response = await fetch(`/api/tasks/${task?.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Unknown error");
+      }
+
+      toast.success("Task updated");
+      router.push("/");
+    } catch (err) {
+      toast.error("Error updating task");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "There was an error. Please, try again"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,8 +151,6 @@ export function useTaskForm({
       text: trimmedComment,
       createdAt: new Date(),
     };
-
-    //TODO: Edit -> create comment on API
     //TODO implement roles
     setComments((prev) => [...prev, newCommentObj]);
     setNewComment("");
@@ -109,5 +170,6 @@ export function useTaskForm({
     dueDate,
     loading,
     error,
+    loadingComments,
   };
 }

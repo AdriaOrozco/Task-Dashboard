@@ -59,11 +59,6 @@ export type TaskHookProps = {
   order: number;
   createTask?: OnSubmitTask;
   task?: Task;
-  initialData?: {
-    name: string;
-    description: string;
-    dueDate?: Date;
-  };
   onOpenChange: (open: boolean) => void;
 };
 

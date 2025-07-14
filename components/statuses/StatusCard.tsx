@@ -121,7 +121,7 @@ function StatusCard({
           statusId={id}
           open={open}
           onOpenChange={setOpen}
-          title="Crear nueva tarea"
+          title="Create new task"
           order={tasks.length}
           createTask={createTask}
         ></TaskModal>

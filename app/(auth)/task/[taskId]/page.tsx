@@ -1,7 +1,9 @@
 import TaskModalClient from "@/components/tasks/TaskModalClient";
+import TaskModalSkeleton from "@/components/tasks/TaskModalSkeleton";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 import { Task } from "@/types/components";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export default async function TaskModalPage({
   params,
@@ -24,5 +26,9 @@ export default async function TaskModalPage({
 
   if (!taskAndStatus) redirect("/");
 
-  return <TaskModalClient taskAndStatus={taskAndStatus} />;
+  return (
+    <Suspense fallback={<TaskModalSkeleton />}>
+      <TaskModalClient taskAndStatus={taskAndStatus} />
+    </Suspense>
+  );
 }

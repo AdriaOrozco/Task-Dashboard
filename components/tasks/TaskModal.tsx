@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useTaskForm } from "@/hooks/tasks/useTaskForm";
 import { TaskModalProps } from "@/types/components";
 import { Spinner } from "../ui/spinner";
+import { Skeleton } from "../ui/skeleton";
 
 export function TaskModal({
   open,
@@ -29,10 +30,10 @@ export function TaskModal({
   title,
   statusName,
   mode,
-  initialData,
   order,
   statusId,
   createTask,
+  task,
 }: TaskModalProps) {
   const {
     register,
@@ -47,13 +48,14 @@ export function TaskModal({
     dueDate,
     loading,
     error,
+    loadingComments,
   } = useTaskForm({
     mode,
-    initialData,
     onOpenChange,
     statusId,
     order,
     createTask,
+    task,
   });
 
   //TODO -> Refactor to separate components
@@ -168,6 +170,17 @@ export function TaskModal({
 
             {/* Comments list */}
             <div className="max-h-57 overflow-auto pr-2 space-y-3">
+              {loadingComments ? (
+                <div className="space-y-4 overflow-y-auto flex-1 pr-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 bg-gray-700 rounded w-3/4" />
+                      <Skeleton className="h-4 bg-gray-700 rounded w-full" />
+                      <Skeleton className="h-4 bg-gray-700 rounded w-5/6" />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {comments?.length
                 ? comments.map((comment) => (
                     <div

@@ -63,3 +63,75 @@ export async function GET(
     return NextResponse.json({ error: "Error fetching task" }, { status: 500 });
   }
 }
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Task ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json();
+
+    const { name, description, dueDate, comments = [], statusId, order } = body;
+
+    if (!name || !statusId) {
+      return NextResponse.json(
+        { error: "Task name and statusId are required" },
+        { status: 400 }
+      );
+    }
+
+    const taskRef = db.collection("tasks").doc(id);
+    const taskDoc = await taskRef.get();
+
+    if (!taskDoc.exists) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    const updateData = {
+      name,
+      description: description ?? "",
+      dueDate: dueDate ? (dueDate ? new Date(dueDate) : null) : null,
+      statusId: statusId ?? "",
+      order: typeof order === "number" ? order : 0,
+      updatedAt: new Date(),
+    };
+    await taskRef.update(updateData);
+
+    const existingCommentsSnapshot = await db
+      .collection("comments")
+      .where("taskId", "==", id)
+      .get();
+
+    const existingIds = new Set(
+      existingCommentsSnapshot.docs.map((doc) => doc.id)
+    );
+
+    const batch = db.batch();
+
+    for (const comment of comments) {
+      if (!existingIds.has(comment.id)) {
+        const commentRef = db.collection("comments").doc(comment.id);
+        batch.set(commentRef, {
+          ...comment,
+          taskId: id,
+          createdAt: new Date(),
+        });
+      }
+    }
+
+    await batch.commit();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return NextResponse.json({ error: "Error updating task" }, { status: 500 });
+  }
+}
