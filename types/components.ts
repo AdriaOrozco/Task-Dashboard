@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase-admin/firestore";
 import { Dispatch, SetStateAction } from "react";
 
 export type SpinnerProps = {
@@ -32,3 +33,47 @@ export type CreateOperationsType = {
 };
 
 export type Operations = "UPDATE_NAME" | "DELETE";
+
+export type Task = {
+  id: string;
+  name: string;
+  description?: string;
+  statusId: string;
+  dueDate?: string | null;
+  order: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+};
+
+export interface TaskPayload {
+  comments: Comment[];
+  name: string;
+  description?: string;
+  statusId: string;
+  dueDate?: string | null;
+  order: number;
+}
+
+export type TaskHookProps = {
+  mode: "create" | "edit";
+  statusName: string;
+  order: number;
+  initialData?: {
+    name: string;
+    description: string;
+    dueDate?: Date;
+  };
+  onOpenChange: (open: boolean) => void;
+};
+
+export interface TaskModalProps extends TaskHookProps {
+  open: boolean;
+  title: string;
+}
+
+export interface Comment {
+  id: string;
+  authorEmail: string;
+  text: string;
+  createdAt: Date;
+}
