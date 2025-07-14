@@ -9,6 +9,8 @@ import {
 import { useStatus } from "@/hooks/statuses/useStatus";
 import AddStatusCard from "./AddStatusCard";
 import { useTasks } from "@/hooks/tasks/useTasks";
+import { useSession } from "next-auth/react";
+import { can } from "@/lib/utils";
 
 export function StatusesList({
   statuses,
@@ -25,24 +27,64 @@ export function StatusesList({
     handleDragStart,
     createOperations,
     updateListOperation,
+    canDrag,
   } = useStatus({
     statuses,
   });
+
+  const { data: session } = useSession();
 
   const { tasksByStatus, createTask } = useTasks(tasks);
 
   return (
     <main className="flex gap-4 px-4 py-2 overflow-x-auto h-calc-header">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={rectIntersection}
-        onDragEnd={handleDragEnd}
-        onDragStart={handleDragStart}
-      >
-        <SortableContext
-          items={statusesState}
-          strategy={horizontalListSortingStrategy}
+      {canDrag ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={rectIntersection}
+          onDragEnd={canDrag ? handleDragEnd : undefined}
+          onDragStart={canDrag ? handleDragStart : undefined}
         >
+          <SortableContext
+            items={statusesState}
+            strategy={horizontalListSortingStrategy}
+          >
+            {statusesState.map((status: Status) => (
+              <div key={status.id} className="max-h-full">
+                <StatusCard
+                  updateListOperation={updateListOperation}
+                  key={status.id}
+                  id={status.id}
+                  name={status.name}
+                  tasks={tasksByStatus[status.id] ?? []}
+                  canDrag={canDrag}
+                  createTask={createTask}
+                />
+              </div>
+            ))}
+            {session?.user?.role && can(session.user.role, "create_status") && (
+              <AddStatusCard createOperations={createOperations} />
+            )}
+          </SortableContext>
+          {canDrag ? (
+            <DragOverlay>
+              {activeStatus ? (
+                <StatusCard
+                  tasks={tasksByStatus[activeStatus.id] ?? []}
+                  updateListOperation={updateListOperation}
+                  id={activeStatus.id}
+                  name={activeStatus.name}
+                  createTask={createTask}
+                  canDrag={canDrag}
+                  isDragging
+                />
+              ) : null}
+            </DragOverlay>
+          ) : null}
+        </DndContext>
+      ) : (
+        <>
+          {" "}
           {statusesState.map((status: Status) => (
             <div key={status.id} className="max-h-full">
               <StatusCard
@@ -52,24 +94,15 @@ export function StatusesList({
                 name={status.name}
                 tasks={tasksByStatus[status.id] ?? []}
                 createTask={createTask}
+                canDrag={canDrag}
               />
             </div>
           ))}
-          <AddStatusCard createOperations={createOperations} />
-        </SortableContext>
-        <DragOverlay>
-          {activeStatus ? (
-            <StatusCard
-              tasks={tasksByStatus[activeStatus.id] ?? []}
-              updateListOperation={updateListOperation}
-              id={activeStatus.id}
-              name={activeStatus.name}
-              createTask={createTask}
-              isDragging
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          {session?.user?.role && can(session.user.role, "create_status") && (
+            <AddStatusCard createOperations={createOperations} />
+          )}
+        </>
+      )}
     </main>
   );
 }

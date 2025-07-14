@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Comment, Task } from "@/types/components";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const userEmail = session?.user?.email;
+    if (!userEmail) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
     const body = await req.json();
     const { name, description, dueDate, comments = [], statusId, order } = body;
 
@@ -22,6 +31,7 @@ export async function POST(req: NextRequest) {
       statusId,
       createdAt: new Date(),
       order: order,
+      createdBy: userEmail,
     });
 
     //Create comments
@@ -54,6 +64,7 @@ export async function POST(req: NextRequest) {
       description: description || "",
       dueDate: dueDate ? new Date(dueDate).toString() : null,
       statusId,
+      createdBy: userEmail,
       createdAt: {
         _seconds: seconds,
         _nanoseconds: nanoseconds,

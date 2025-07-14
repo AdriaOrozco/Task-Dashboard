@@ -3,6 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { Comment, TaskModalCommentFormProps } from "@/types/components";
+import { useSession } from "next-auth/react";
+import { can } from "@/lib/utils";
 
 export default function TaskModalCommentsForm({
   newComment,
@@ -11,33 +13,36 @@ export default function TaskModalCommentsForm({
   loadingComments,
   comments,
 }: TaskModalCommentFormProps) {
+  const { data: session } = useSession();
   return (
     <div className="flex-1 space-y-2 min-w-0">
       <Label className="text-white">Comments</Label>
-      <div className="flex gap-2 items-center">
-        <Input
-          className="bg-gray-800 border-gray-600 text-white"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Escribe un comentario..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
+      {session?.user?.role && can(session.user.role, "create_comment") ? (
+        <div className="flex gap-2 items-center">
+          <Input
+            className="bg-gray-800 border-gray-600 text-white"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Escribe un comentario..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addComment();
+              }
+            }}
+          />
+          <Button
+            variant="secondary"
+            className="h-8"
+            onClick={(e) => {
               e.preventDefault();
               addComment();
-            }
-          }}
-        />
-        <Button
-          variant="secondary"
-          className="h-8"
-          onClick={(e) => {
-            e.preventDefault();
-            addComment();
-          }}
-        >
-          Post
-        </Button>
-      </div>
+            }}
+          >
+            Post
+          </Button>
+        </div>
+      ) : null}
 
       <div className="max-h-57 overflow-auto pr-2 space-y-3">
         {loadingComments ? (

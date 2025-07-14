@@ -66,6 +66,8 @@ export function TaskModal({
           className="flex flex-col md:flex-row gap-6 px-6 flex-grow overflow-auto min-h-0"
         >
           <TaskModalInfoForm
+            mode={mode}
+            task={task}
             register={register}
             errors={errors}
             dueDate={dueDate}

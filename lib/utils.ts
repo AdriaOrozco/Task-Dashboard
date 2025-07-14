@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { signIn } from "next-auth/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { CustomTimeStamp } from "@/types/components";
+import { Permission, Role, rolePermissions } from "@/types/permissions";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -50,6 +51,32 @@ export function getDragStyle(isDragging: boolean): string {
 export function timestampToDate(timestamp: CustomTimeStamp): string {
   const milliseconds =
     timestamp._seconds * 1000 + Math.floor(timestamp._nanoseconds / 1e6);
-  console.log(new Date(milliseconds));
   return new Date(milliseconds).toDateString();
+}
+export function can(
+  role: Role,
+  action: Permission,
+  options?: { userId?: string; resourceOwnerId?: string }
+): boolean {
+  const permissions = rolePermissions[role] ?? [];
+
+  if (permissions.includes("*")) {
+    return true;
+  }
+
+  const selfActions: Permission[] = ["update_self", "delete_self"];
+  if (selfActions.includes(action)) {
+    if (
+      permissions.includes(action) &&
+      options?.userId &&
+      options?.resourceOwnerId &&
+      options.userId === options.resourceOwnerId
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  return permissions.includes(action);
 }

@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react";
 import { OnSubmitTask, Task, TaskPayload } from "@/types/components";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { can } from "@/lib/utils";
 
 export function useTasks(initialTasks: Task[] = []) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { data: session } = useSession();
 
   //  Group by StatusId
   const tasksByStatus = useMemo(() => {
@@ -35,26 +38,28 @@ export function useTasks(initialTasks: Task[] = []) {
         statusId: statusId,
         order: order,
       };
-      const response = await fetch("/api/tasks", {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (can(session?.user.role ?? "Worker", "create_task")) {
+        const response = await fetch("/api/tasks", {
+          method: mode === "edit" ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error desconocido");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Error desconocido");
+        }
+        const newTask: {
+          message: string;
+          task: Task;
+        } = await response.json();
+
+        setTasks((prev) => [...prev, newTask.task]);
+
+        toast.success("Task created");
+
+        onOpenChange(false);
       }
-      const newTask: {
-        message: string;
-        task: Task;
-      } = await response.json();
-
-      setTasks((prev) => [...prev, newTask.task]);
-
-      toast.success("Task created");
-
-      onOpenChange(false);
     } catch (err) {
       toast.error("Error creating task");
       setError(err instanceof Error ? err.message : "Error inesperado");

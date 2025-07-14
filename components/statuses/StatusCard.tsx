@@ -4,13 +4,14 @@ import { CSS } from "@dnd-kit/utilities";
 import { useStatusName } from "@/hooks/statuses/useStatusName";
 import { useStatusDelete } from "@/hooks/statuses/useStatusDelete";
 import { OnSubmitTask, StatusCardType, Task } from "@/types/components";
-import { cn, getDragStyle } from "@/lib/utils";
+import { can, cn, getDragStyle } from "@/lib/utils";
 import { memo, useState } from "react";
 import CardHeader from "./CardHeader";
 import CardHeaderEditor from "./CardHeaderEditor";
 import { TaskModal } from "../tasks/TaskModal";
 import TaskItem from "../tasks/TaskItem";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 function StatusCard({
   id,
@@ -19,7 +20,12 @@ function StatusCard({
   updateListOperation,
   tasks,
   createTask,
-}: StatusCardType & { tasks: Task[]; createTask: OnSubmitTask }) {
+  canDrag,
+}: StatusCardType & {
+  tasks: Task[];
+  createTask: OnSubmitTask;
+  canDrag: boolean;
+}) {
   const {
     isEditing,
     newName,
@@ -36,7 +42,7 @@ function StatusCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: "grab",
+    cursor: canDrag ? "grab" : "default",
   };
   const { handleDelete, loading, confirmDeleteOpen, setConfirmDeleteOpen } =
     useStatusDelete({
@@ -46,6 +52,8 @@ function StatusCard({
 
   const [open, setOpen] = useState(false);
   const router = useRouter();
+
+  const { data: session } = useSession();
 
   return (
     <>
@@ -67,6 +75,7 @@ function StatusCard({
             setIsEditing={setIsEditing}
             handleDelete={handleDelete}
             loading={loading}
+            canDrag={canDrag}
           />
         ) : (
           <CardHeaderEditor
@@ -104,18 +113,19 @@ function StatusCard({
             )}
           </ul>
         </div>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen(true);
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          className="w-full mt-2 p-2 text-sm text-white text-left hover:bg-gray-600 rounded cursor-pointer"
-        >
-          + Add task
-        </button>
+        {session?.user?.role && can(session.user.role, "create_task") && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(true);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="w-full mt-2 p-2 text-sm text-white text-left hover:bg-gray-600 rounded cursor-pointer"
+          >
+            + Add task
+          </button>
+        )}
       </section>
       {open && (
         <TaskModal

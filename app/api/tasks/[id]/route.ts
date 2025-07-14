@@ -41,6 +41,7 @@ export async function GET(
     const statusName = statusDoc.exists ? statusDoc.data()?.name : null;
 
     const task: Task = {
+      createdBy: data.createdBy,
       id: taskDoc.id,
       name: data.name,
       description: data.description || "",

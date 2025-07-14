@@ -1,10 +1,12 @@
-import { timestampToDate } from "@/lib/utils";
+import { can, timestampToDate } from "@/lib/utils";
 import { Task } from "@/types/components";
 import { MoreVertical } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useTaskItem } from "@/hooks/tasks/useTaskItem";
 import ConfirmModal from "../common/ConfirmModal";
 import { useTaskDelete } from "@/hooks/tasks/useTaskDelete";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function TaskItem({
   task,
@@ -26,6 +28,8 @@ export default function TaskItem({
   } = useTaskItem();
 
   const { handleDelete, loading } = useTaskDelete({ id: task.id });
+  const { data: session } = useSession();
+
   return (
     <>
       <li className="relative w-full bg-gray-700 max-w-[260px] rounded-lg px-3 py-2 shadow-md hover:bg-gray-600 transition cursor-pointer flex flex-col">
@@ -68,17 +72,24 @@ export default function TaskItem({
                   >
                     Edit
                   </button>
-                  <button
-                    className="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-700 hover:text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDeleteConfirmation();
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                  >
-                    Delete
-                  </button>
+                  {session?.user.role &&
+                  session.user.email &&
+                  can(session.user.role, "delete_self", {
+                    userId: session.user.email,
+                    resourceOwnerId: task.createdBy,
+                  }) ? (
+                    <button
+                      className="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-700 hover:text-white cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeleteConfirmation();
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      Delete
+                    </button>
+                  ) : null}
                 </div>,
                 document.body
               )}
@@ -99,7 +110,19 @@ export default function TaskItem({
           title="Delete task"
           description="Are you sure you want to delete this task? This action cannot be undone."
           onConfirm={() => {
-            handleDelete();
+            if (session?.user.role && session.user.email)
+              if (
+                can(session.user.role, "delete_self", {
+                  userId: session.user.email,
+                  resourceOwnerId: task.createdBy,
+                })
+              ) {
+                handleDelete();
+              } else {
+                toast.error(
+                  "You don't have permissions to perform this action"
+                );
+              }
           }}
           loading={loading}
         />

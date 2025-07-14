@@ -2,11 +2,13 @@ import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/lib/firebaseAdmin";
 import bcrypt from "bcrypt";
+import { JWT } from "next-auth/jwt";
+import { AuthOptions, Session, User } from "next-auth";
 
 // Users are stored in Firestore instead of using Firebase Authentication,
 // because authentication and session management is handled via NextAuth
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -41,12 +43,14 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) token.role = user.role;
       return token;
     },
-    async session({ session, token }) {
-      if (session.user) session.user.role = token.role;
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (session.user) {
+        session.user.role = token.role;
+      }
       return session;
     },
   },
@@ -56,6 +60,7 @@ const handler = NextAuth({
   pages: {
     signIn: "/login",
   },
-});
+};
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

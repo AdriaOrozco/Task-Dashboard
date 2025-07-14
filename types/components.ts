@@ -41,6 +41,7 @@ export interface Task {
   statusId: string;
   dueDate?: string | null;
   order: number;
+  createdBy: string;
   createdAt: CustomTimeStamp;
   updatedAt: CustomTimeStamp;
 }
@@ -129,6 +130,8 @@ export type TaskModalInfoProps = {
   errors: Partial<FieldErrors<TaskFormData>>;
   dueDate?: Date | null | undefined;
   setValue: UseFormSetValue<TaskFormData>;
+  task?: Task;
+  mode: "create" | "edit";
 };
 
 export type TaskModalCommentFormProps = {
