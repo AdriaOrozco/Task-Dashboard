@@ -38,10 +38,11 @@ function StatusCard({
     transition,
     cursor: "grab",
   };
-  const { handleDelete } = useStatusDelete({
-    id,
-    updateListOperation,
-  });
+  const { handleDelete, loading, confirmDeleteOpen, setConfirmDeleteOpen } =
+    useStatusDelete({
+      id,
+      updateListOperation,
+    });
 
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -60,9 +61,12 @@ function StatusCard({
       >
         {!isEditing ? (
           <CardHeader
+            confirmDeleteOpen={confirmDeleteOpen}
+            setConfirmDeleteOpen={setConfirmDeleteOpen}
             newName={newName}
             setIsEditing={setIsEditing}
             handleDelete={handleDelete}
+            loading={loading}
           />
         ) : (
           <CardHeaderEditor
@@ -95,7 +99,6 @@ function StatusCard({
                   onEdit={() => {
                     router.push(`/task/${task.id}`);
                   }}
-                  onDelete={() => {}}
                 />
               ))
             )}

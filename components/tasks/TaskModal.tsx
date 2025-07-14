@@ -128,7 +128,6 @@ export function TaskModal({
                     mode="single"
                     selected={dueDate}
                     onSelect={(date) => setValue("dueDate", date)}
-                    initialFocus
                   />
                 </PopoverContent>
               </Popover>

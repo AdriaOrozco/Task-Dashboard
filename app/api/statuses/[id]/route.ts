@@ -29,7 +29,6 @@ export async function PUT(
     );
   }
 }
-
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -37,22 +36,39 @@ export async function DELETE(
   const { id } = params;
 
   try {
-    await db
+    const boardStatusesRef = db
       .collection("boards")
       .doc("shared-board")
-      .collection("statuses")
-      .doc(id)
-      .delete();
+      .collection("statuses");
 
-    //Reorder
-    const snapshot = await db
-      .collection("boards")
-      .doc("shared-board")
-      .collection("statuses")
-      .orderBy("order")
+    await boardStatusesRef.doc(id).delete();
+
+    //Get status tasks
+    const tasksSnapshot = await db
+      .collection("tasks")
+      .where("statusId", "==", id)
       .get();
 
     const batch = db.batch();
+
+    //Delete tasks
+    for (const taskDoc of tasksSnapshot.docs) {
+      const taskId = taskDoc.id;
+
+      //Delete comments
+      const commentsSnapshot = await db
+        .collection("comments")
+        .where("taskId", "==", taskId)
+        .get();
+
+      commentsSnapshot.forEach((commentDoc) => {
+        batch.delete(commentDoc.ref);
+      });
+      batch.delete(taskDoc.ref);
+    }
+
+    //Reorder remaining statuses
+    const snapshot = await boardStatusesRef.orderBy("order").get();
 
     snapshot.docs.forEach((doc, index) => {
       batch.update(doc.ref, { order: index });
@@ -60,11 +76,13 @@ export async function DELETE(
 
     await batch.commit();
 
-    return NextResponse.json({ message: "Status deleted" });
+    return NextResponse.json({
+      message: "Status and related tasks/comments deleted",
+    });
   } catch (error) {
-    console.error("Error deleting status:", error);
+    console.error("Error deleting status and related data:", error);
     return NextResponse.json(
-      { error: "Failed to delete status" },
+      { error: "Failed to delete status and related data" },
       { status: 500 }
     );
   }

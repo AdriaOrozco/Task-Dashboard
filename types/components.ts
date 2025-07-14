@@ -96,3 +96,14 @@ export type OnSubmitTask = (
   setError: (error: string) => void,
   setLoading: (loading: boolean) => void
 ) => Promise<void>;
+
+export interface ConfirmModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  loading: boolean;
+}

@@ -135,3 +135,74 @@ export async function PUT(
     return NextResponse.json({ error: "Error updating task" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Task ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const taskRef = db.collection("tasks").doc(id);
+    const taskDoc = await taskRef.get();
+
+    if (!taskDoc.exists) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    const taskData = taskDoc.data();
+    if (!taskData?.statusId) {
+      return NextResponse.json(
+        { error: "Task has no statusId, cannot reorder tasks" },
+        { status: 400 }
+      );
+    }
+
+    const statusId = taskData.statusId;
+
+    //Delete task
+    await taskRef.delete();
+
+    //Delete comments
+    const commentsSnapshot = await db
+      .collection("comments")
+      .where("taskId", "==", id)
+      .get();
+
+    const batchDelete = db.batch();
+    commentsSnapshot.forEach((doc) => {
+      batchDelete.delete(doc.ref);
+    });
+    await batchDelete.commit();
+
+    //Reorder tasks
+    const tasksSnapshot = await db
+      .collection("tasks")
+      .where("statusId", "==", statusId)
+      .orderBy("order")
+      .get();
+
+    const batchUpdate = db.batch();
+    let orderIndex = 0;
+    tasksSnapshot.forEach((doc) => {
+      if (doc.data().order !== orderIndex) {
+        batchUpdate.update(doc.ref, { order: orderIndex });
+      }
+      orderIndex++;
+    });
+
+    await batchUpdate.commit();
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json({ error: "Error deleting task" }, { status: 500 });
+  }
+}
