@@ -64,16 +64,18 @@ export function useTaskForm({
     //TODO -> Edit
     setLoading(true);
     setError(null);
-    await createTask(
-      data,
-      mode,
-      statusId,
-      order,
-      comments,
-      onOpenChange,
-      setError,
-      setLoading
-    );
+    if (createTask) {
+      await createTask(
+        data,
+        mode,
+        statusId,
+        order,
+        comments,
+        onOpenChange,
+        setError,
+        setLoading
+      );
+    }
   };
 
   const addComment = () => {

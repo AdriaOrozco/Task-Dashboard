@@ -57,7 +57,8 @@ export type TaskHookProps = {
   mode: "create" | "edit";
   statusId: string;
   order: number;
-  createTask: OnSubmitTask;
+  createTask?: OnSubmitTask;
+  task?: Task;
   initialData?: {
     name: string;
     description: string;

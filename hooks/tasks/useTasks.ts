@@ -18,6 +18,7 @@ export function useTasks(initialTasks: Task[] = []) {
     }, {});
   }, [tasks]);
 
+  //If the app becomes bigger consider using Context API, Redux, zustand...
   const createTask: OnSubmitTask = async (
     data,
     mode,

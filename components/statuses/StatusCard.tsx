@@ -4,11 +4,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { useStatusName } from "@/hooks/statuses/useStatusName";
 import { useStatusDelete } from "@/hooks/statuses/useStatusDelete";
 import { OnSubmitTask, StatusCardType, Task } from "@/types/components";
-import { cn, getDragStyle, timestampToDate } from "@/lib/utils";
+import { cn, getDragStyle } from "@/lib/utils";
 import { memo, useState } from "react";
 import CardHeader from "./CardHeader";
 import CardHeaderEditor from "./CardHeaderEditor";
 import { TaskModal } from "../tasks/TaskModal";
+import TaskItem from "../tasks/TaskItem";
+import { useRouter } from "next/navigation";
 
 function StatusCard({
   id,
@@ -42,6 +44,7 @@ function StatusCard({
   });
 
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -86,20 +89,14 @@ function StatusCard({
               </p>
             ) : (
               tasks.map((task) => (
-                <li
+                <TaskItem
                   key={task.id}
-                  className="w-full bg-gray-700 max-w-[260px] rounded-lg px-3 py-2 shadow-md hover:bg-gray-600 transition cursor-pointer flex flex-col"
-                >
-                  <div className="text-sm font-medium text-white truncate">
-                    {task.name}
-                  </div>
-                  <div className="text-xs text-gray-300">
-                    {timestampToDate(task.createdAt)}
-                  </div>
-                  <div className="text-sm text-gray-300 overflow-hidden whitespace-nowrap text-ellipsis">
-                    {task.description || ""}
-                  </div>
-                </li>
+                  task={task}
+                  onEdit={() => {
+                    router.push(`/task/${task.id}`);
+                  }}
+                  onDelete={() => {}}
+                />
               ))
             )}
           </ul>
