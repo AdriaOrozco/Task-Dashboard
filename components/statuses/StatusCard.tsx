@@ -3,8 +3,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useStatusName } from "@/hooks/statuses/useStatusName";
 import { useStatusDelete } from "@/hooks/statuses/useStatusDelete";
-import { StatusCardType } from "@/types/components";
-import { cn, getDragStyle } from "@/lib/utils";
+import { OnSubmitTask, StatusCardType, Task } from "@/types/components";
+import { cn, getDragStyle, timestampToDate } from "@/lib/utils";
 import { memo, useState } from "react";
 import CardHeader from "./CardHeader";
 import CardHeaderEditor from "./CardHeaderEditor";
@@ -15,7 +15,9 @@ function StatusCard({
   name,
   isDragging,
   updateListOperation,
-}: StatusCardType) {
+  tasks,
+  createTask,
+}: StatusCardType & { tasks: Task[]; createTask: OnSubmitTask }) {
   const {
     isEditing,
     newName,
@@ -49,7 +51,7 @@ function StatusCard({
         {...attributes}
         {...listeners}
         className={cn(
-          "flex flex-col bg-gray-700 rounded-xl shadow-sm min-h-[340px] min-w-[320px] p-5 border border-gray-700 hover:border-violet-600 transition relative",
+          "flex flex-col bg-gray-700 rounded-xl shadow-sm min-w-[320px] max-h-[calc(100vh-100px)] p-5 border border-gray-700 hover:border-violet-600 transition relative",
           getDragStyle(isDragging ?? false)
         )}
       >
@@ -69,16 +71,43 @@ function StatusCard({
             error={error}
           />
         )}
-        <div className="flex-1 border border-dashed border-gray-400 rounded-md bg-gray-800 flex items-center justify-center text-gray-400 select-none">
-          {
-            //TODO: Fetch tasks for this status
-          }
-          <p className="italic pointer-events-none">No tasks yet</p>
+        <div className="flex-1 overflow-y-auto my-2 min-h-[200px]">
+          <ul
+            className={cn(
+              "w-full min-h-[200px] border border-dashed border-gray-400 rounded-md bg-gray-800 text-gray-400 select-none px-2 py-2",
+              tasks.length === 0
+                ? "flex items-center justify-center min-h-[100px]"
+                : "flex flex-col gap-3"
+            )}
+          >
+            {tasks.length === 0 ? (
+              <p className="italic text-gray-400 w-full text-center">
+                No tasks yet
+              </p>
+            ) : (
+              tasks.map((task) => (
+                <li
+                  key={task.id}
+                  className="w-full bg-gray-700 max-w-[260px] rounded-lg px-3 py-2 shadow-md hover:bg-gray-600 transition cursor-pointer flex flex-col"
+                >
+                  <div className="text-sm font-medium text-white truncate">
+                    {task.name}
+                  </div>
+                  <div className="text-xs text-gray-300">
+                    {timestampToDate(task.createdAt)}
+                  </div>
+                  <div className="text-sm text-gray-300 overflow-hidden whitespace-nowrap text-ellipsis">
+                    {task.description || ""}
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
         </div>
+
         <button
           onClick={(e) => {
             e.stopPropagation();
-
             setOpen(true);
           }}
           onPointerDown={(e) => e.stopPropagation()}
@@ -88,17 +117,18 @@ function StatusCard({
           + Add task
         </button>
       </section>
-      {
-        //TODO: Set order based on position in the list
-      }
-      <TaskModal
-        mode="create"
-        statusName={newName}
-        open={open}
-        onOpenChange={setOpen}
-        title="Crear nueva tarea"
-        order={0}
-      ></TaskModal>
+      {open && (
+        <TaskModal
+          mode="create"
+          statusName={newName}
+          statusId={id}
+          open={open}
+          onOpenChange={setOpen}
+          title="Crear nueva tarea"
+          order={tasks.length}
+          createTask={createTask}
+        ></TaskModal>
+      )}
     </>
   );
 }

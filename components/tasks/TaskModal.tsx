@@ -31,6 +31,8 @@ export function TaskModal({
   mode,
   initialData,
   order,
+  statusId,
+  createTask,
 }: TaskModalProps) {
   const {
     register,
@@ -45,7 +47,14 @@ export function TaskModal({
     dueDate,
     loading,
     error,
-  } = useTaskForm({ mode, initialData, onOpenChange, statusName, order });
+  } = useTaskForm({
+    mode,
+    initialData,
+    onOpenChange,
+    statusId,
+    order,
+    createTask,
+  });
 
   //TODO -> Refactor to separate components
 

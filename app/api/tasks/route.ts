@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
-import { Comment } from "@/types/components";
+import { Comment, Task } from "@/types/components";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, dueDate, comments = [], statusId } = body;
+    const { name, description, dueDate, comments = [], statusId, order } = body;
 
     if (!name || !statusId) {
       return NextResponse.json(
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       dueDate: dueDate ? new Date(dueDate) : null,
       statusId,
       createdAt: new Date(),
+      order: order,
     });
 
     //Create comments
@@ -43,7 +44,28 @@ export async function POST(req: NextRequest) {
 
     await batch.commit();
 
-    return NextResponse.json({ message: "Task created", taskId: taskRef.id });
+    const now = new Date();
+    const seconds = Math.floor(now.getTime() / 1000);
+    const nanoseconds = (now.getTime() % 1000) * 1_000_000;
+
+    const newTask: Task = {
+      id: taskRef.id,
+      name,
+      description: description || "",
+      dueDate: dueDate ? new Date(dueDate).toString() : null,
+      statusId,
+      createdAt: {
+        _seconds: seconds,
+        _nanoseconds: nanoseconds,
+      },
+      updatedAt: {
+        _seconds: seconds,
+        _nanoseconds: nanoseconds,
+      },
+      order,
+    };
+
+    return NextResponse.json({ message: "Task created", task: newTask });
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json({ error: "Error creating task" }, { status: 500 });

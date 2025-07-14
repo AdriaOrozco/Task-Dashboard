@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { signIn } from "next-auth/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { CustomTimeStamp } from "@/types/components";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -45,4 +46,10 @@ export function getDragStyle(isDragging: boolean): string {
   return isDragging
     ? "opacity-90 shadow-2xl scale-[1.03] z-50 ring-4 ring-violet-500"
     : "";
+}
+export function timestampToDate(timestamp: CustomTimeStamp): string {
+  const milliseconds =
+    timestamp._seconds * 1000 + Math.floor(timestamp._nanoseconds / 1e6);
+  console.log(new Date(milliseconds));
+  return new Date(milliseconds).toDateString();
 }

@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase-admin/firestore";
 import { Dispatch, SetStateAction } from "react";
 
 export type SpinnerProps = {
@@ -41,8 +40,8 @@ export type Task = {
   statusId: string;
   dueDate?: string | null;
   order: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: CustomTimeStamp;
+  updatedAt: CustomTimeStamp;
 };
 
 export interface TaskPayload {
@@ -56,8 +55,9 @@ export interface TaskPayload {
 
 export type TaskHookProps = {
   mode: "create" | "edit";
-  statusName: string;
+  statusId: string;
   order: number;
+  createTask: OnSubmitTask;
   initialData?: {
     name: string;
     description: string;
@@ -69,6 +69,7 @@ export type TaskHookProps = {
 export interface TaskModalProps extends TaskHookProps {
   open: boolean;
   title: string;
+  statusName: string;
 }
 
 export interface Comment {
@@ -77,3 +78,25 @@ export interface Comment {
   text: string;
   createdAt: Date;
 }
+
+export type CustomTimeStamp = {
+  _seconds: number;
+  _nanoseconds: number;
+};
+
+export type TaskFormValues = {
+  name: string;
+  description?: string;
+  dueDate?: Date | null;
+};
+
+export type OnSubmitTask = (
+  data: TaskFormValues,
+  mode: "edit" | "create",
+  statusId: string,
+  order: number,
+  comments: Comment[],
+  onOpenChange: (open: boolean) => void,
+  setError: (error: string) => void,
+  setLoading: (loading: boolean) => void
+) => Promise<void>;

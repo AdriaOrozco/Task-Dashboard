@@ -1,17 +1,17 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { Comment, TaskHookProps, TaskPayload } from "@/types/components";
+import { Comment, TaskHookProps } from "@/types/components";
 import { taskFormSchema, TaskFormValues } from "@/schemas/taskSchema";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
 
 export function useTaskForm({
   mode,
   initialData,
   onOpenChange,
-  statusName,
+  statusId,
   order,
+  createTask,
 }: TaskHookProps) {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
@@ -48,38 +48,32 @@ export function useTaskForm({
       });
       //TODO -> Fetch comments
     }
+
+    return () => {
+      //reset form
+      reset({
+        name: "",
+        description: "",
+        dueDate: undefined,
+      });
+      setComments([]);
+    };
   }, [mode, initialData, reset]);
 
   const onSubmit: SubmitHandler<TaskFormValues> = async (data) => {
     //TODO -> Edit
     setLoading(true);
     setError(null);
-    try {
-      const payload: TaskPayload = {
-        ...data,
-        dueDate: data.dueDate ? data.dueDate.toISOString() : null, //Using Timestamp
-        comments: comments,
-        statusId: statusName,
-        order: order,
-      };
-      const response = await fetch("/api/tasks", {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error desconocido");
-      }
-      toast.success("Task created");
-      onOpenChange(false);
-    } catch (err) {
-      toast.error("Error creating task");
-      setError(err instanceof Error ? err.message : "Error inesperado");
-    } finally {
-      setLoading(false);
-    }
+    await createTask(
+      data,
+      mode,
+      statusId,
+      order,
+      comments,
+      onOpenChange,
+      setError,
+      setLoading
+    );
   };
 
   const addComment = () => {
@@ -94,6 +88,7 @@ export function useTaskForm({
     };
 
     //TODO: Edit -> create comment on API
+    //TODO implement roles
     setComments((prev) => [...prev, newCommentObj]);
     setNewComment("");
   };

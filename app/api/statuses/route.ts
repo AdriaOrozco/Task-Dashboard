@@ -14,7 +14,15 @@ export async function GET() {
       ...doc.data(),
     }));
 
-    return NextResponse.json(statuses);
+    //If the app becomes bigger here we can filter the tasks by board
+    const tasksRef = await db.collection("tasks").get();
+
+    const tasks = tasksRef.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return NextResponse.json({ statuses, tasks });
   } catch (error) {
     console.error("Error fetching statuses:", error);
     return NextResponse.json(

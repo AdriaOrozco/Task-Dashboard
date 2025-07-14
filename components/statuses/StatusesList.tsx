@@ -1,5 +1,5 @@
 "use client";
-import { Status } from "@/types/components";
+import { Status, Task } from "@/types/components";
 import { StatusCardMemo as StatusCard } from "./StatusCard";
 import { DndContext, DragOverlay, rectIntersection } from "@dnd-kit/core";
 import {
@@ -8,8 +8,15 @@ import {
 } from "@dnd-kit/sortable";
 import { useStatus } from "@/hooks/statuses/useStatus";
 import AddStatusCard from "./AddStatusCard";
+import { useTasks } from "@/hooks/tasks/useTasks";
 
-export function StatusesList({ statuses }: { statuses: Status[] }) {
+export function StatusesList({
+  statuses,
+  tasks,
+}: {
+  statuses: Status[];
+  tasks: Task[];
+}) {
   const {
     statusesState,
     sensors,
@@ -21,6 +28,8 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
   } = useStatus({
     statuses,
   });
+
+  const { tasksByStatus, createTask } = useTasks(tasks);
 
   return (
     <main className="flex gap-4 px-4 py-2 overflow-x-auto h-calc-header">
@@ -41,6 +50,8 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
                 key={status.id}
                 id={status.id}
                 name={status.name}
+                tasks={tasksByStatus[status.id] ?? []}
+                createTask={createTask}
               />
             </div>
           ))}
@@ -49,9 +60,11 @@ export function StatusesList({ statuses }: { statuses: Status[] }) {
         <DragOverlay>
           {activeStatus ? (
             <StatusCard
+              tasks={tasksByStatus[activeStatus.id] ?? []}
               updateListOperation={updateListOperation}
               id={activeStatus.id}
               name={activeStatus.name}
+              createTask={createTask}
               isDragging
             />
           ) : null}
