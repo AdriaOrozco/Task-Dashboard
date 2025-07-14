@@ -95,13 +95,24 @@ export async function PUT(
     if (!taskDoc.exists) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
+    let newOrder = typeof order === "number" ? order : 0;
+
+    //If task is changing status
+    if (taskDoc.data()?.statusId !== statusId) {
+      const tasksSnapshot = await db
+        .collection("tasks")
+        .where("statusId", "==", statusId)
+        .get();
+
+      newOrder = tasksSnapshot.size;
+    }
 
     const updateData = {
       name,
       description: description ?? "",
       dueDate: dueDate ? (dueDate ? new Date(dueDate) : null) : null,
       statusId: statusId ?? "",
-      order: typeof order === "number" ? order : 0,
+      order: newOrder,
       updatedAt: new Date(),
     };
     await taskRef.update(updateData);

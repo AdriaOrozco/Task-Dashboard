@@ -59,6 +59,21 @@ export function useTaskForm({
     setLoadingComments(false);
   };
 
+  const [statuses, setStatuses] = useState([]);
+
+  const getPossibleStatus = async () => {
+    try {
+      const res = await fetch("/api/statuses/unique");
+      if (!res.ok) throw new Error("Failed to fetch statuses");
+      const data = await res.json();
+      setStatuses(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const [activeStatus, setActiveStatus] = useState(statusId);
+
   useEffect(() => {
     if (mode === "edit" && task) {
       reset({
@@ -70,6 +85,7 @@ export function useTaskForm({
             : undefined,
       });
       getTaskComments();
+      getPossibleStatus();
     }
 
     return () => {
@@ -112,7 +128,7 @@ export function useTaskForm({
         ...data,
         dueDate: data.dueDate ? data.dueDate.toISOString() : null,
         comments,
-        statusId,
+        statusId: activeStatus,
         order,
       };
 
@@ -126,7 +142,6 @@ export function useTaskForm({
         const errorData = await response.json();
         throw new Error(errorData.error || "Unknown error");
       }
-
       toast.success("Task updated");
       router.push("/");
     } catch (err) {
@@ -171,5 +186,8 @@ export function useTaskForm({
     loading,
     error,
     loadingComments,
+    statuses,
+    setActiveStatus,
+    activeStatus,
   };
 }

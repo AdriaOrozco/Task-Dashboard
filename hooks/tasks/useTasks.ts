@@ -5,8 +5,6 @@ import { toast } from "sonner";
 export function useTasks(initialTasks: Task[] = []) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
-  //TODO delete
-
   //  Group by StatusId
   const tasksByStatus = useMemo(() => {
     return tasks.reduce<Record<string, Task[]>>((acc, task) => {

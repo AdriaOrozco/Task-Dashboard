@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 
 export type SpinnerProps = {
   width?: number | string;
@@ -33,7 +34,7 @@ export type CreateOperationsType = {
 
 export type Operations = "UPDATE_NAME" | "DELETE";
 
-export type Task = {
+export interface Task {
   id: string;
   name: string;
   description?: string;
@@ -42,7 +43,7 @@ export type Task = {
   order: number;
   createdAt: CustomTimeStamp;
   updatedAt: CustomTimeStamp;
-};
+}
 
 export interface TaskPayload {
   comments: Comment[];
@@ -107,3 +108,33 @@ export interface ConfirmModalProps {
   onConfirm: () => void;
   loading: boolean;
 }
+
+export type TaskModalHeaderProps = {
+  title: string;
+  mode: "edit" | "create";
+  activeStatus: string;
+  setActiveStatus: (statusId: string) => void;
+  statuses: Status[];
+  statusName: string;
+};
+
+export type TaskFormData = {
+  name: string;
+  description?: string;
+  dueDate?: Date | undefined;
+};
+
+export type TaskModalInfoProps = {
+  register: UseFormRegister<TaskFormData>;
+  errors: Partial<FieldErrors<TaskFormData>>;
+  dueDate?: Date | null | undefined;
+  setValue: UseFormSetValue<TaskFormData>;
+};
+
+export type TaskModalCommentFormProps = {
+  newComment: string;
+  setNewComment: (value: string) => void;
+  addComment: () => void;
+  loadingComments: boolean;
+  comments: Comment[];
+};
