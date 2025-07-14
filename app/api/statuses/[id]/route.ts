@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
+import { requirePermission } from "@/lib/requirePermission";
 
 export async function PUT(
   req: NextRequest,
@@ -9,6 +10,14 @@ export async function PUT(
   try {
     const { session, response } = await getAuthenticatedSession();
     if (!session) return response;
+    if (session.user.role) {
+      const permissionCheck = requirePermission(
+        session.user.role,
+        "update_status"
+      );
+      if (permissionCheck) return permissionCheck;
+    }
+
     const { id } = params;
     const { name } = await req.json();
 
@@ -38,6 +47,13 @@ export async function DELETE(
 ) {
   const { session, response } = await getAuthenticatedSession();
   if (!session) return response;
+  if (session.user.role) {
+    const permissionCheck = requirePermission(
+      session.user.role,
+      "delete_status"
+    );
+    if (permissionCheck) return permissionCheck;
+  }
   const { id } = params;
 
   try {
