@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Task } from "@/types/components";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
+import { requireSpecialPermission } from "@/lib/requirePermission";
 
 export async function GET(
   req: NextRequest,
@@ -103,6 +104,19 @@ export async function PUT(
     }
     let newOrder = typeof order === "number" ? order : 0;
 
+    const userEmail = session.user.email ?? "";
+    const userRole = session.user.role ?? "Worker";
+
+    const data = taskDoc.data()!;
+
+    const errorResponse = requireSpecialPermission(
+      userRole,
+      "update_self",
+      userEmail,
+      data.createdBy
+    );
+    if (errorResponse) return errorResponse;
+
     //If task is changing status
     if (taskDoc.data()?.statusId !== statusId) {
       const tasksSnapshot = await db
@@ -183,6 +197,17 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    const userEmail = session.user.email ?? "";
+    const userRole = session.user.role ?? "Worker";
+
+    const errorResponse = requireSpecialPermission(
+      userRole,
+      "delete_self",
+      userEmail,
+      taskData.createdBy
+    );
+    if (errorResponse) return errorResponse;
 
     const statusId = taskData.statusId;
 

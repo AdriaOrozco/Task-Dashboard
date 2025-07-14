@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Comment, Task } from "@/types/components";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
+import { requirePermission } from "@/lib/requirePermission";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +13,13 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
       });
+    }
+    if (session.user.role) {
+      const permissionCheck = requirePermission(
+        session.user.role,
+        "create_task"
+      );
+      if (permissionCheck) return permissionCheck;
     }
     const body = await req.json();
     const { name, description, dueDate, comments = [], statusId, order } = body;
