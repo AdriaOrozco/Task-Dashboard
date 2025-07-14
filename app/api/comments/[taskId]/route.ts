@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Comment } from "@/types/components";
+import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { taskId: string } }
 ) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { taskId } = await params;
 
     if (!taskId) {
@@ -24,7 +27,6 @@ export async function GET(
 
     const comments: Comment[] = commentsSnapshot.docs.map((doc) => {
       const data = doc.data();
-      console.log(data);
       return {
         id: doc.id,
         text: data.text,
