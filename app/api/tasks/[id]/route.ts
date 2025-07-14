@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Task } from "@/types/components";
+import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { id } = await params;
 
     if (!id) {
@@ -70,6 +73,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { id } = await params;
 
     if (!id) {
@@ -153,6 +158,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { id } = await params;
 
     if (!id) {

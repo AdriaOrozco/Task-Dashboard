@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Comment, Task } from "@/types/components";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const userEmail = session?.user?.email;
     if (!userEmail) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
+import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function GET() {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const boardRef = db.collection("boards").doc("shared-board");
     const statusesSnap = await boardRef
       .collection("statuses")
@@ -34,6 +37,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { name, order } = await req.json();
 
     if (!name || name.trim() === "") {

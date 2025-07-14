@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
+import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function PUT(req: NextRequest) {
   try {
+    const { session, response } = await getAuthenticatedSession();
+    if (!session) return response;
     const { orderedIds } = await req.json();
 
     if (!Array.isArray(orderedIds)) {
