@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { db } from "@/lib/firebaseAdmin"; // tu instancia de Firestore
+import { db } from "@/lib/firebaseAdmin";
 import { registerSchema } from "@/schemas/registerSchema";
 import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 

@@ -8,7 +8,7 @@ import { Suspense } from "react";
 export default async function TaskModalPage({
   params,
 }: {
-  params: { taskId: string };
+  params: Promise<{ taskId: string }>;
 }) {
   const { taskId } = await params;
 

@@ -3,28 +3,38 @@ import { OnSubmitTask, Task, TaskPayload } from "@/types/components";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { can } from "@/lib/utils";
+import { useTasksFilters } from "./useTaskFilters";
 
 export function useTasks(initialTasks: Task[] = []) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const { data: session } = useSession();
 
+  const {
+    filteredTasks,
+    filters,
+    onChangeFilter,
+    orderBy,
+    setOrderBy,
+    creators,
+    resetFilters,
+  } = useTasksFilters({ tasks });
+
   //  Group by StatusId
   const tasksByStatus = useMemo(() => {
-    return tasks.reduce<Record<string, Task[]>>((acc, task) => {
+    return filteredTasks.reduce<Record<string, Task[]>>((acc, task) => {
       if (!acc[task.statusId]) {
         acc[task.statusId] = [];
       }
       acc[task.statusId].push(task);
       return acc;
     }, {});
-  }, [tasks]);
+  }, [filteredTasks]);
 
   //If the app becomes bigger consider using Context API, Redux, zustand...
   const createTask: OnSubmitTask = async (
     data,
     mode,
     statusId,
-    order,
     comments,
     onOpenChange,
     setError,
@@ -36,7 +46,6 @@ export function useTasks(initialTasks: Task[] = []) {
         dueDate: data.dueDate ? data.dueDate.toISOString() : null, //Using Timestamp
         comments: comments,
         statusId: statusId,
-        order: order,
       };
       if (can(session?.user.role ?? "Worker", "create_task")) {
         const response = await fetch("/api/tasks", {
@@ -73,5 +82,11 @@ export function useTasks(initialTasks: Task[] = []) {
     tasksByStatus,
     setTasks,
     createTask,
+    filters,
+    onChangeFilter,
+    orderBy,
+    setOrderBy,
+    creators,
+    resetFilters,
   };
 }

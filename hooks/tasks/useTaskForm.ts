@@ -11,7 +11,6 @@ export function useTaskForm({
   mode,
   onOpenChange,
   statusId,
-  order,
   task,
   createTask,
 }: TaskHookProps) {
@@ -61,6 +60,7 @@ export function useTaskForm({
 
   const [statuses, setStatuses] = useState([]);
 
+  //GET ALL STATUSES
   const getPossibleStatus = async () => {
     try {
       const res = await fetch("/api/statuses/unique");
@@ -108,7 +108,6 @@ export function useTaskForm({
         data,
         mode,
         statusId,
-        order,
         comments,
         onOpenChange,
         setError,
@@ -129,7 +128,6 @@ export function useTaskForm({
         dueDate: data.dueDate ? data.dueDate.toISOString() : null,
         comments,
         statusId: activeStatus,
-        order,
       };
 
       const response = await fetch(`/api/tasks/${task?.id}`, {
@@ -166,7 +164,6 @@ export function useTaskForm({
       text: trimmedComment,
       createdAt: new Date(),
     };
-    //TODO implement roles
     setComments((prev) => [...prev, newCommentObj]);
     setNewComment("");
   };

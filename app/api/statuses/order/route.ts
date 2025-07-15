@@ -7,6 +7,7 @@ import { reorderDocuments } from "@/lib/serverUtils";
 export async function PUT(req: NextRequest) {
   try {
     const { session, response } = await getAuthenticatedSession();
+    //Check permissions
     if (!session) return response;
     if (session.user.role) {
       const permissionCheck = requirePermission(

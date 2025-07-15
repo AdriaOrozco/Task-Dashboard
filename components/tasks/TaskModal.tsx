@@ -17,7 +17,6 @@ export function TaskModal({
   title,
   statusName,
   mode,
-  order,
   statusId,
   createTask,
   task,
@@ -43,7 +42,6 @@ export function TaskModal({
     mode,
     onOpenChange,
     statusId,
-    order,
     createTask,
     task,
   });

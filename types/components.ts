@@ -52,13 +52,11 @@ export interface TaskPayload {
   description?: string;
   statusId: string;
   dueDate?: string | null;
-  order: number;
 }
 
 export type TaskHookProps = {
   mode: "create" | "edit";
   statusId: string;
-  order: number;
   createTask?: OnSubmitTask;
   task?: Task;
   onOpenChange: (open: boolean) => void;
@@ -92,7 +90,7 @@ export type OnSubmitTask = (
   data: TaskFormValues,
   mode: "edit" | "create",
   statusId: string,
-  order: number,
+
   comments: Comment[],
   onOpenChange: (open: boolean) => void,
   setError: (error: string) => void,
@@ -141,3 +139,37 @@ export type TaskModalCommentFormProps = {
   loadingComments: boolean;
   comments: Comment[];
 };
+
+export interface Filters {
+  searchText: string;
+  dueDate: string;
+  statusId: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export type OrderBy = "order" | "createdBy" | "name";
+
+export interface FiltersButtonModalProps {
+  statuses: Status[];
+  creators: string[]; // lista de emails o nombres de creadores
+  filters: Filters;
+  resetFilters: () => void;
+  orderBy: OrderBy;
+  setOrderBy: (order: OrderBy) => void;
+  onChangeFilter: (e: FilterEvent) => void;
+}
+export type FilterEvent =
+  | React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  | { target: { name: string; value: string } };
+
+export interface FiltersDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  filters: Filters;
+  onChangeFilter: (e: FilterEvent) => void;
+  orderBy: OrderBy;
+  setOrderBy: (orderBy: OrderBy) => void;
+  statuses: Status[];
+  creators: string[];
+}

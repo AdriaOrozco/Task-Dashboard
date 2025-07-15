@@ -112,7 +112,6 @@ export async function insertNewComments(taskId: string, comments: Comment[]) {
       batch.set(commentRef, {
         ...comment,
         taskId,
-        createdAt: new Date(),
       });
     }
   }

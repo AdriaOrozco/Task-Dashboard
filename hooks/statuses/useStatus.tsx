@@ -7,12 +7,14 @@ import { toast } from "sonner";
 export function useStatus({ statuses }: { statuses: Status[] }) {
   const [statusesState, setStatuseState] = useState(statuses);
 
+  //ORDER STATUSES
   const { sensors, handleDragEnd, activeStatus, handleDragStart, canDrag } =
     useStatusOrder({
       statusesState,
       setStatusesState: setStatuseState,
     });
 
+  //CREATE STATUSES
   const { createOperations } = useStatusCreate({
     statusesState: statusesState,
     setStatusesState: setStatuseState,

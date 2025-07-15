@@ -23,7 +23,6 @@ export default function TaskModalClient({ taskAndStatus }: Props) {
       statusId={taskAndStatus.status.statusId}
       open={true}
       title="Edit task"
-      order={taskAndStatus.task.order}
       task={taskAndStatus.task}
       onOpenChange={() => {
         redirect("/");

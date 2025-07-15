@@ -135,7 +135,6 @@ function StatusCard({
           open={open}
           onOpenChange={setOpen}
           title="Create new task"
-          order={tasks.length}
           createTask={createTask}
         ></TaskModal>
       )}

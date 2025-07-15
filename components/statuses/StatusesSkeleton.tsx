@@ -1,5 +1,4 @@
 "use client";
-
 import { Skeleton } from "../ui/skeleton";
 
 export function StatusesSkeleton() {

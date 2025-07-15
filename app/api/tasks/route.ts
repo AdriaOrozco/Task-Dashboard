@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       if (permissionCheck) return permissionCheck;
     }
     const body = await req.json();
-    const { name, description, dueDate, comments = [], statusId, order } = body;
+    const { name, description, dueDate, comments = [], statusId } = body;
 
     if (!name || !statusId) {
       return NextResponse.json(
@@ -31,6 +31,20 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    //Order auto
+    const tasksSnapshot = await db
+      .collection("tasks")
+      .where("statusId", "==", statusId)
+      .orderBy("order", "desc")
+      .limit(1)
+      .get();
+
+    let maxOrder = 0;
+    if (!tasksSnapshot.empty) {
+      maxOrder = tasksSnapshot.docs[0].data().order || 0;
+    }
+
+    const newOrder = maxOrder + 1;
 
     //Create task
     const taskRef = await db.collection("tasks").add({
@@ -39,7 +53,7 @@ export async function POST(req: NextRequest) {
       dueDate: dueDate ? new Date(dueDate) : null,
       statusId,
       createdAt: new Date(),
-      order: order,
+      order: newOrder,
       createdBy: userEmail,
     });
 
@@ -65,7 +79,7 @@ export async function POST(req: NextRequest) {
         _seconds: seconds,
         _nanoseconds: nanoseconds,
       },
-      order,
+      order: newOrder,
     };
 
     return NextResponse.json({ message: "Task created", task: newTask });

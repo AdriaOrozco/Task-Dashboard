@@ -9,11 +9,12 @@ import {
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { session, response } = await getAuthenticatedSession();
     if (!session) return response;
+    //Check permissions
     if (session.user.role) {
       const permissionCheck = requirePermission(
         session.user.role,
@@ -22,7 +23,7 @@ export async function PUT(
       if (permissionCheck) return permissionCheck;
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { name } = await req.json();
 
     if (!name || name.trim() === "") {
@@ -48,10 +49,11 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { session, response } = await getAuthenticatedSession();
   if (!session) return response;
+  //Check permissions
   if (session.user.role) {
     const permissionCheck = requirePermission(
       session.user.role,
@@ -59,7 +61,7 @@ export async function DELETE(
     );
     if (permissionCheck) return permissionCheck;
   }
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const boardStatusesRef = db

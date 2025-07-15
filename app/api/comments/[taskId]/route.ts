@@ -5,7 +5,7 @@ import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
     const { session, response } = await getAuthenticatedSession();

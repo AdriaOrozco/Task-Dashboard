@@ -11,7 +11,7 @@ import {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { session, response } = await getAuthenticatedSession();
@@ -76,7 +76,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { session, response } = await getAuthenticatedSession();
@@ -114,35 +114,46 @@ export async function PUT(
 
     const data = taskDoc.data()!;
 
-    const errorResponse = requireSpecialPermission(
-      userRole,
-      "update_self",
-      userEmail,
-      data.createdBy
-    );
-    if (errorResponse) return errorResponse;
+    //ALL USERS ALL ALLOWED TO CREATE COMMENTS
+    await insertNewComments(id, comments);
 
-    //If task is changing status
-    if (taskDoc.data()?.statusId !== statusId) {
-      const tasksSnapshot = await db
-        .collection("tasks")
-        .where("statusId", "==", statusId)
-        .get();
+    const isOnlyComments =
+      name === data.name &&
+      (description ?? "") === (data.description ?? "") &&
+      (!dueDate ||
+        new Date(dueDate).toISOString() ===
+          data.dueDate?.toDate().toISOString()) &&
+      statusId === data.statusId;
+    if (!isOnlyComments) {
+      const errorResponse = requireSpecialPermission(
+        userRole,
+        "update_self",
+        userEmail,
+        data.createdBy
+      );
+      if (errorResponse) return errorResponse;
 
-      newOrder = tasksSnapshot.size;
+      //If task is changing status
+      if (taskDoc.data()?.statusId !== statusId) {
+        const tasksSnapshot = await db
+          .collection("tasks")
+          .where("statusId", "==", statusId)
+          .get();
+
+        newOrder = tasksSnapshot.size;
+      }
+
+      const updateData = {
+        name,
+        description: description ?? "",
+        dueDate: dueDate ? (dueDate ? new Date(dueDate) : null) : null,
+        statusId: statusId ?? "",
+        order: newOrder,
+        updatedAt: new Date(),
+      };
+      await taskRef.update(updateData);
     }
 
-    const updateData = {
-      name,
-      description: description ?? "",
-      dueDate: dueDate ? (dueDate ? new Date(dueDate) : null) : null,
-      statusId: statusId ?? "",
-      order: newOrder,
-      updatedAt: new Date(),
-    };
-    await taskRef.update(updateData);
-
-    await insertNewComments(id, comments);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating task:", error);
@@ -152,7 +163,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { session, response } = await getAuthenticatedSession();
