@@ -97,4 +97,10 @@ The application defines two user roles — `Admin` and `Worker` — with differe
 The application is deployed and accessible at:  
 [https://task-dashboard-u3mq.vercel.app]
 
-Feel free to try it out live!
+For testing purposes, you can use the following credentials with a worker role:
+Email: worker@gmail.com
+Password: TestWorker123
+
+The database is preloaded with 4 default statuses (TO DO, In Progress, TEST, DONE) and one task in the TO DO status.
+
+Feel free to create as many users as you want, both with admin and user/worker roles, to explore all functionalities.
