@@ -91,3 +91,10 @@ The application defines two user roles — `Admin` and `Worker` — with differe
 - **Authentication and authorization:** Managed via NextAuth and middleware with permission checking functions.
 
 - **Scalable database design:** Tasks, statuses, comments, and users are stored in separate Firestore collections to enable efficient querying and potential future expansion.
+
+## Deployment
+
+The application is deployed and accessible at:  
+[https://task-dashboard-u3mq.vercel.app]
+
+Feel free to try it out live!
