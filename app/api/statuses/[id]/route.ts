@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 import { requirePermission } from "@/lib/requirePermission";
+import {
+  deleteTaskWithComments,
+  reorderBoardStatuses,
+} from "@/lib/serverUtils";
 
 export async function PUT(
   req: NextRequest,
@@ -41,6 +45,7 @@ export async function PUT(
     );
   }
 }
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -74,26 +79,11 @@ export async function DELETE(
 
     //Delete tasks
     for (const taskDoc of tasksSnapshot.docs) {
-      const taskId = taskDoc.id;
-
-      //Delete comments
-      const commentsSnapshot = await db
-        .collection("comments")
-        .where("taskId", "==", taskId)
-        .get();
-
-      commentsSnapshot.forEach((commentDoc) => {
-        batch.delete(commentDoc.ref);
-      });
-      batch.delete(taskDoc.ref);
+      await deleteTaskWithComments(taskDoc.id, batch);
     }
 
     //Reorder remaining statuses
-    const snapshot = await boardStatusesRef.orderBy("order").get();
-
-    snapshot.docs.forEach((doc, index) => {
-      batch.update(doc.ref, { order: index });
-    });
+    await reorderBoardStatuses(batch, boardStatusesRef);
 
     await batch.commit();
 

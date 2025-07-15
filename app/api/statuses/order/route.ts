@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 import { requirePermission } from "@/lib/requirePermission";
+import { reorderDocuments } from "@/lib/serverUtils";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -23,18 +24,12 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    //Firestore batch to do multiple operations
-    const batch = db.batch();
-    orderedIds.forEach((id: string, index: number) => {
-      const docRef = db
-        .collection("boards")
-        .doc("shared-board")
-        .collection("statuses")
-        .doc(id);
-      batch.update(docRef, { order: index });
-    });
+    const statusesRef = db
+      .collection("boards")
+      .doc("shared-board")
+      .collection("statuses");
 
-    await batch.commit();
+    await reorderDocuments(statusesRef, orderedIds);
 
     return NextResponse.json({ message: "Order updated" });
   } catch (error) {

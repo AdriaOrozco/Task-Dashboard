@@ -3,6 +3,11 @@ import { db } from "@/lib/firebaseAdmin";
 import { Task } from "@/types/components";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 import { requireSpecialPermission } from "@/lib/requirePermission";
+import {
+  deleteTaskWithComments,
+  insertNewComments,
+  reorderTasksInStatus,
+} from "@/lib/serverUtils";
 
 export async function GET(
   req: NextRequest,
@@ -137,29 +142,7 @@ export async function PUT(
     };
     await taskRef.update(updateData);
 
-    const existingCommentsSnapshot = await db
-      .collection("comments")
-      .where("taskId", "==", id)
-      .get();
-
-    const existingIds = new Set(
-      existingCommentsSnapshot.docs.map((doc) => doc.id)
-    );
-
-    const batch = db.batch();
-
-    for (const comment of comments) {
-      if (!existingIds.has(comment.id)) {
-        const commentRef = db.collection("comments").doc(comment.id);
-        batch.set(commentRef, {
-          ...comment,
-          taskId: id,
-          createdAt: new Date(),
-        });
-      }
-    }
-
-    await batch.commit();
+    await insertNewComments(id, comments);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating task:", error);
@@ -209,40 +192,8 @@ export async function DELETE(
     );
     if (errorResponse) return errorResponse;
 
-    const statusId = taskData.statusId;
-
-    //Delete task
-    await taskRef.delete();
-
-    //Delete comments
-    const commentsSnapshot = await db
-      .collection("comments")
-      .where("taskId", "==", id)
-      .get();
-
-    const batchDelete = db.batch();
-    commentsSnapshot.forEach((doc) => {
-      batchDelete.delete(doc.ref);
-    });
-    await batchDelete.commit();
-
-    //Reorder tasks
-    const tasksSnapshot = await db
-      .collection("tasks")
-      .where("statusId", "==", statusId)
-      .orderBy("order")
-      .get();
-
-    const batchUpdate = db.batch();
-    let orderIndex = 0;
-    tasksSnapshot.forEach((doc) => {
-      if (doc.data().order !== orderIndex) {
-        batchUpdate.update(doc.ref, { order: orderIndex });
-      }
-      orderIndex++;
-    });
-
-    await batchUpdate.commit();
+    await deleteTaskWithComments(id);
+    await reorderTasksInStatus(taskData.statusId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

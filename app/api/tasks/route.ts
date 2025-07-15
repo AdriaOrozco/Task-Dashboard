@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
-import { Comment, Task } from "@/types/components";
+import { Task } from "@/types/components";
 import { getAuthenticatedSession } from "@/lib/getAuthenticatedSession";
 import { requirePermission } from "@/lib/requirePermission";
+import { createCommentsForTask } from "@/lib/serverUtils";
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,24 +44,7 @@ export async function POST(req: NextRequest) {
     });
 
     //Create comments
-    const batch = db.batch();
-
-    for (const comment of comments) {
-      if (!comment.id || typeof comment.id !== "string") {
-        throw new Error("There is a comment with invalid ID");
-      }
-    }
-
-    comments.forEach((comment: Comment) => {
-      const commentRef = db.collection("comments").doc(comment.id);
-
-      batch.set(commentRef, {
-        ...comment,
-        taskId: taskRef.id, //Join comment with task
-      });
-    });
-
-    await batch.commit();
+    await createCommentsForTask(taskRef.id, comments);
 
     const now = new Date();
     const seconds = Math.floor(now.getTime() / 1000);
